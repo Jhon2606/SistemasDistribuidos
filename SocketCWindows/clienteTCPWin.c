@@ -1,4 +1,3 @@
-# define _WIN32_WINNT 0x0600
 #ifndef WIN32_LEAN_AND_MEAN
   #define WIN32_LEAN_AND_MEAN
 #endif
@@ -35,18 +34,17 @@ int __cdecl main(int argc, char **argv)
 
   // Usage
   if (argc != 2) {
-    printf("\t\tUsage: %s endereco do host\n", argv[0]);
+    printf("Usage: %s endereco do host\n", argv[0]);
     return 1;
   }
 
-  printf("\n\t-> Inicializando a biblioteca de Winsock...");
+  printf("Inicializando a biblioteca de Winsock...\n");
   // Initializando a biblioteca de Winsock
   iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
   if (iResult != 0) {
-    printf("\t\t[-] WSASturtup falhou! Erro: %d\n\n", iResult);
+    printf("[-] WSASturtup falhou! Erro: %d\n\n", iResult);
     return 1;
   }
-  printf("\t\t[+] Biblioteca inicializada com sucesso!\n");
 
   ZeroMemory( &hints, sizeof(hints) );
   hints.ai_family = AF_UNSPEC;
@@ -54,30 +52,28 @@ int __cdecl main(int argc, char **argv)
   hints.ai_protocol = IPPROTO_TCP;
 
   printf("\t-> Resolvendo endereco e porta do servidor...");
-  // Resolvendo o endereco e porta do servidor
   iResult = getaddrinfo(argv[1], DEFAULT_PORT, &hints, &result);
   if ( iResult != 0 ) {
-    printf("\t\t[-] getaddrinfo() falhou! Erro: %d\n\n", iResult);
+    printf("[-] getaddrinfo() falhou! Erro: %d\n\n", iResult);
     WSACleanup();
     return 1;
   }
-  printf("\t\t[+] Sucesso!\n");
+  printf("[+] Sucesso!\n");
 
-  printf("\t-> Iniciando procedimento de conexao...");
+  printf("Iniciando procedimento de conexao...\n");
   // Lanca tentativas de conexao com o host até obter sucesso... ou nao.
   for(ptr=result; ptr != NULL ;ptr=ptr->ai_next) {
 
-    printf("\n\t-> Criando SOCKET para conexao...");
+    printf("Criando SOCKET para conexao...\n");
     // Criando socket
     ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
     if (ConnectSocket == INVALID_SOCKET) {
-      printf("\t\t\t\t[-] Socket falhou! Erro: %ld\n\n", WSAGetLastError());
+      printf("[-] Socket falhou! Erro: %ld\n\n", WSAGetLastError());
       WSACleanup();
       return 1;
     }
-    printf("\t\t\t[+] Socket criado com sucesso!\n");
 
-    printf("\t-> Conectando ao host...");
+    printf("Conectando ao host...\n");
     // Connect to server.
     iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
     if (iResult == SOCKET_ERROR) {
@@ -90,13 +86,12 @@ int __cdecl main(int argc, char **argv)
   freeaddrinfo(result);
 
   if (ConnectSocket == INVALID_SOCKET) {
-    printf("\t\t\t\t[-] Conexao com o server invalida!\n\n");
+    printf("[-] Conexao com o server invalida!\n\n");
     WSACleanup();
     return 1;
   }
-  printf("\t\t\t\t[+] Sucesso!!!\n");
 
-  printf("\t-> Enviando mensagens...\n");
+  printf("Enviando mensagens...\n");
   // Enviando mensagens
   while (1) {
     strcpy(sendbuf, "");
@@ -104,18 +99,17 @@ int __cdecl main(int argc, char **argv)
     scanf("%255[^\n]", sendbuf);
     iResult = send( ConnectSocket, sendbuf, (int)strlen(sendbuf), 0 );
     if (iResult == SOCKET_ERROR) {
-      printf("\t\t\t\t[-] send() falhou! Erro: %d\n\n", WSAGetLastError());
+      printf("[-] send() falhou! Erro: %d\n\n", WSAGetLastError());
       closesocket(ConnectSocket);
       WSACleanup();
       return 1;
 	}
 	if (strlen(sendbuf) == 0) {
-	  printf("Helder\n");
 	  break;
 	}
     clear_stdin_buffer();
   }
-  printf("\n\n\t### Bye!!! ###\n");
+  printf("\n### Bye!!! ###\n");
   // cleanup
   closesocket(ConnectSocket);
   WSACleanup();

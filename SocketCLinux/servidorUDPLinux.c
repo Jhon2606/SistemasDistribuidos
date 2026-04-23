@@ -1,7 +1,3 @@
-/* fpont 12/99 */
-/* pont.net    */
-/* udpServer.c */
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,9 +6,10 @@
 #include <stdio.h>
 #include <unistd.h> /* close() */
 #include <string.h> /* memset() */
+#include <stdlib.h>
 
 #define LOCAL_SERVER_PORT 40001
-#define MAX_MSG 100
+#define MAX_MSG 255
 
 int main(int argc, char *argv[]) {
 
@@ -46,7 +43,6 @@ int main(int argc, char *argv[]) {
     /* init buffer */
     memset(msg,0x0,MAX_MSG);
     /* receive message */
-//    cliLen = sizeof(cliAddr);
     n = read(sd, msg, MAX_MSG);
 
     if(n<0) {
@@ -56,15 +52,9 @@ int main(int argc, char *argv[]) {
 
     /* print received message */
     printf("recebido: %s\n", msg);
-
-//    cliente_ip = inet_ntoa(cliente.sin_addr);
-//    cliente_port = ntohs(cliente.sin_port);
-//    printf("cliente conectou: %s : [ %d ]\n", cliente_ip, cliente_port);
-//    printf("Waiting for data\n");
-
   }/* end of server infinite loop */
 
-return 0;
+  return 0;
 
 }
 

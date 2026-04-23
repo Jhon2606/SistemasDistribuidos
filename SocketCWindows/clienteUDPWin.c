@@ -5,17 +5,28 @@
 // Link com a biblioteca Winsock
 #pragma comment(lib, "ws2_32.lib")
 
-#define SERVER_IP "192.168.39.213" // Endereço IP do servidor
+//#define SERVER_IP "192.168.39.213" // Endereço IP do servidor
 #define PORT 40001             // Porta do servidor
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 255
 
-int main() {
+void clear_stdin_buffer() {
+	int c;
+	while ((c = getchar()) != '\n' && c != EOF);
+}
+
+int main(int argc, char *argv[]) {
     WSADATA wsa;
     SOCKET clientSocket;
     struct sockaddr_in serverAddr;
     char buffer[BUFFER_SIZE];
-    char *message = "Ola, servidor!";
+    int bufLength;
 
+    /* check command line args */
+    if(argc<2) {
+        printf("usage : %s <server> \n", argv[0]);
+        exit(1);
+    }
+    printf("%s\n", argv[1]);
     // 1. Inicializar Winsock
     printf("Inicializando Winsock...\n");
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
@@ -34,28 +45,28 @@ int main() {
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
-    serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+    serverAddr.sin_addr.s_addr = inet_addr(argv[1]);
 
     // 4. Enviar dados
-    printf("Enviando dados para %s:%d...\n", SERVER_IP, PORT);
-    if (sendto(clientSocket, message, strlen(message), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        printf("sendto() falhou. Codigo: %d\n", WSAGetLastError());
-        closesocket(clientSocket);
-        WSACleanup();
-        return 1;
-    }
-    printf("Mensagem enviada.\n");
-/*
-    // 5. Receber resposta (opcional no UDP)
-    struct sockaddr_in fromAddr;
-    int fromLen = sizeof(fromAddr);
-    int recvLen = recvfrom(clientSocket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&fromAddr, &fromLen);
-    
-    if (recvLen != SOCKET_ERROR) {
-        buffer[recvLen] = '\0';
-        printf("Resposta do servidor: %s\n", buffer);
-    }
-*/
+	while (1) {
+		strcpy(buffer, "");
+		printf("Digite a mensagem: ");
+		scanf("%255[^\n]", buffer);
+		bufLength = strlen(buffer);
+		printf("%d\n", bufLength);
+        if (sendto(clientSocket, buffer, strlen(buffer), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+            printf("sendto() falhou. Codigo: %d\n", WSAGetLastError());
+            closesocket(clientSocket);
+            WSACleanup();
+            return 1;
+        }
+		clear_stdin_buffer();
+		if (bufLength == 0) {
+			printf("Helder\n");
+			break;
+		}
+	}
+//    printf("Mensagem enviada.\n");
     // 6. Fechar socket e liberar Winsock
     closesocket(clientSocket);
     WSACleanup();

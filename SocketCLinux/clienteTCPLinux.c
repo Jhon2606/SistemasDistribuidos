@@ -1,7 +1,3 @@
-/* fpont 12/99 */
-/* pont.net    */
-/* udpClient.c */
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -13,8 +9,8 @@
 #include <sys/time.h> /* select() */
 #include <stdlib.h>
 
-#define REMOTE_SERVER_PORT 40001
-#define MAX_MSG 100
+#define REMOTE_SERVER_PORT 40002
+#define MAX_MSG 255
 
 void clear_stdin_buffer() {
   int c;
@@ -24,7 +20,7 @@ void clear_stdin_buffer() {
 int main(int argc, char *argv[]) {
 
   int sd, rc, i;
-  struct sockaddr_in cliAddr, remoteServAddr;
+  struct sockaddr_in cliAddr, servidor;
   struct hostent *h;
 
   /* check command line args */
@@ -42,13 +38,14 @@ int main(int argc, char *argv[]) {
 
   printf("%s: sending data to '%s' (IP : %s) \n", argv[0], h->h_name,
          inet_ntoa(*(struct in_addr *)h->h_addr_list[0]));
-
-//  remoteServAddr.sin_family = h->h_addrtype;
-//  memcpy((char *) &remoteServAddr.sin_addr.s_addr,h->h_addr_list[0], h->h_length);
-//  remoteServAddr.sin_port = htons(REMOTE_SERVER_PORT);
-
+/*
+  remoteServAddr.sin_family = h->h_addrtype;
+  memcpy((char *) &remoteServAddr.sin_addr.s_addr,
+         h->h_addr_list[0], h->h_length);
+  remoteServAddr.sin_port = htons(REMOTE_SERVER_PORT);
+*/
   /* socket creation */
-  sd = socket(AF_INET,SOCK_DGRAM,0);
+  sd = socket(AF_INET,SOCK_STREAM,0);
   if(sd<0) {
     printf("%s: cannot open socket \n",argv[0]);
     exit(1);
@@ -65,7 +62,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 */
-/*
+
   servidor.sin_addr.s_addr = inet_addr(argv[1]);
   servidor.sin_family = AF_INET;
   servidor.sin_port = htons(REMOTE_SERVER_PORT);
@@ -74,34 +71,24 @@ int main(int argc, char *argv[]) {
     printf("Nao foi possivel conectar\n");
     return -1;
   }
-*/
-
-  memset(&remoteServAddr, 0, sizeof(remoteServAddr));
-  remoteServAddr.sin_family = AF_INET;
-  remoteServAddr.sin_port = htons(REMOTE_SERVER_PORT);
-//  remoteServAddr.sin_addr.s_addr = inet_addr(argv[1]);
-  remoteServAddr.sin_addr.s_addr = INADDR_ANY;
 
   /* send data */
-  char msg[MAX_MSG];
   while (1) {
+    char msg[255];
     strcpy(msg, "");
-    printf("Digite a mensagem: ");
-        scanf("%255[^\n]", msg);
-    rc = sendto(sd, msg, strlen(msg), 0, (struct sockaddr *)&remoteServAddr, sizeof(remoteServAddr));
-//   rc = send(sd, msg, strlen(msg)+1, 0);
     clear_stdin_buffer();
+    printf("Digite a mensagem: ");
+    scanf("%255[^\n]", msg);
+//    fflush(stdin);
+//    printf("%d\n", strlen(msg));
+    rc = send(sd, msg, strlen(msg), 0);
 
     if(rc<0) {
       printf("%s: cannot send data %d \n",argv[0],i-1);
       close(sd);
       exit(1);
     }
-
   }
-
+  close(sd);
   return 1;
-
 }
-
-           

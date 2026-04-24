@@ -42,10 +42,8 @@ int main(int argc, char *argv[]){
     printf("%s: enviando dados para '%s' (IP: %s)\n", argv[0], h->h_name,
     inet_ntoa(*(struct in_addr *)h->h_addr_list[0]));//Pega o primeiro IP do host e transforma em texto
 
-    /*  remoteServAddr.sin_family = h->h_addrtype;
-     *  memcpy((char *) &remoteServAddr.sin_addr.s_addr,h->h_addr_list[0], h->h_length);
-     *  remoteServAddr.sin_port = htons(REMOTE_SERVER_PORT);*/
-    //se quiser receber nomes de entrada pelo terminal vai ter que usar isso daqui no lugar de remoteServAddr.sin_addr.s_addr = inet_addr(argv[1]);
+
+
     
     sd = socket(AF_INET, SOCK_DGRAM, 0); //pede ao kernel do Linux para criar um endpoint de comunicação (um numero inteiro que o sistema usa para rastrear a conexão)
     //AF_INET: família de endereços IPPV4
@@ -67,9 +65,11 @@ int main(int argc, char *argv[]){
     //passa o endereço do servidor anteriormente facilitando a passagem de parametros por meio da função connect()
 
     memset(&remoteServAddr, 0, sizeof(remoteServAddr)); //zera a estrutura da memoria de remoteServAddr
-    remoteServAddr.sin_family = AF_INET;
+    remoteServAddr.sin_family = h->h_addrtype; //pegado do DNS
     remoteServAddr.sin_port = htons(REMOTE_SERVER_PORT); //converte a porta 40001 do formato da sua máquina local para o formato da rede
-    remoteServAddr.sin_addr.s_addr =inet_addr(argv[1]); //converte o IP em binário que o sistema de redes entende
+    memcpy((char *) &remoteServAddr.sin_addr.s_addr, h->h_addr_list[0], h->h_length); // copia o IP resolvido de palavra pra numeros
+    //remoteServAddr.sin_addr.s_addr =inet_addr(argv[1]); //converte o IP em binário que o sistema de redes entende
+    //se quiser receber nomes de entrada pelo terminal vai ter que usar isso daqui no lugar de remoteServAddr.sin_addr.s_addr = inet_addr(argv[1]);
 
     char msg[MAX_MSG];
     while (1){

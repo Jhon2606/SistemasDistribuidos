@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
     struct hostent *h; //endereço de memória que contém o IP descoberto pelo DNS
     
     if(argc < 2){ //verifica se passou o servidor corretamentne como segundo argumento na linha de comando
-        printf("Usando: %s como servidor\n", argv[1]);
+        printf("Usando: %s como servidor\n", argv[0]);
         exit(1);
     }
     h = gethostbyname(argv[1]);
@@ -43,4 +43,32 @@ int main(int argc, char *argv[]){
     inet_ntoa(*(struct in_addr *)h->h_addr_list[0]));
     //inet_ntoa(*(struct in_addr *)h->h_addr_list[0])): Pega o primeiro IP do host e transforma em texto
     
+    sd = socket(AF_INET, SOCK_DGRAM, 0); //pede ao kernel do Linux para criar um endpoint de comunicação (um numero inteiro que o sistema usa para rastrear a conexão)
+    //AF_INET: família de endereços IPPV4
+    //SOCK_DGRAM: define o uso so protocolo UDP especificando que o sistema usará datagramas
+    //0: sistema escolhe o protocolo padrão
+    if(sd<0){
+        printf("%s: não foi possível abrir o socket\n", argv[0]);
+        exit(1);
+    }
+    memset(&remoteServAddr, 0, sizeof(remoteServAddr)); //zera a estrutura da memoria de remoteServAddr
+    remoteServAddr.sin_family = AF_INET;
+    remoteServAddr.sin_port = htons(REMOTE_SERVER_PORT); //converte a porta 40001 do formato da sua máquina local para o formato da rede
+    remoteServAddr.sin_addr.s_addr =inet_addr(argv[1]); //converte o IP em binário que o sistema de redes entende
+
+    char msg[MAX_MSG];
+    while (1){
+        strcpy(msg, "");
+        printf("Digite a mensagem: ");
+        scanf("%99[^\n]", msg); //lê tudo até encontrar \n, alterei para 99 para evitar buffer overflow
+        rc = sendto(sd, msg, strlen(msg), 0, (struct sockaddr *)&remoteServAddr, sizeof(remoteServAddr)); //transmite os dados para o servidor e verifica se a operação foi bem-sucedida
+        clear_stdin_buffer();
+
+        if(rc<0){
+            printf("%s: não foi possível enviar os dados %d \n", argv[0], i-1);
+            close(sd);
+            exit(1);
+        }
+    }
+    return 1;
 }

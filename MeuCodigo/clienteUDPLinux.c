@@ -40,8 +40,12 @@ int main(int argc, char *argv[]){
     }
 
     printf("%s: enviando dados para '%s' (IP: %s)\n", argv[0], h->h_name,
-    inet_ntoa(*(struct in_addr *)h->h_addr_list[0]));
-    //inet_ntoa(*(struct in_addr *)h->h_addr_list[0])): Pega o primeiro IP do host e transforma em texto
+    inet_ntoa(*(struct in_addr *)h->h_addr_list[0]));//Pega o primeiro IP do host e transforma em texto
+
+    /*  remoteServAddr.sin_family = h->h_addrtype;
+     *  memcpy((char *) &remoteServAddr.sin_addr.s_addr,h->h_addr_list[0], h->h_length);
+     *  remoteServAddr.sin_port = htons(REMOTE_SERVER_PORT);*/
+    //se quiser receber nomes de entrada pelo terminal vai ter que usar isso daqui no lugar de remoteServAddr.sin_addr.s_addr = inet_addr(argv[1]);
     
     sd = socket(AF_INET, SOCK_DGRAM, 0); //pede ao kernel do Linux para criar um endpoint de comunicação (um numero inteiro que o sistema usa para rastrear a conexão)
     //AF_INET: família de endereços IPPV4
@@ -51,6 +55,17 @@ int main(int argc, char *argv[]){
         printf("%s: não foi possível abrir o socket\n", argv[0]);
         exit(1);
     }
+
+    /*servidor.sin_addr.s_addr = inet_addr(argv[1]);
+    servidor.sin_family = AF_INET;
+    servidor.sin_port = htons(REMOTE_SERVER_PORT);
+    //Conectando no servidor remoto
+    if (connect(sd, (struct sockaddr *) &servidor, sizeof (servidor)) < 0) {
+        printf("Nao foi possivel conectar\n");
+        return -1;
+        }*/
+    //passa o endereço do servidor anteriormente facilitando a passagem de parametros por meio da função connect()
+
     memset(&remoteServAddr, 0, sizeof(remoteServAddr)); //zera a estrutura da memoria de remoteServAddr
     remoteServAddr.sin_family = AF_INET;
     remoteServAddr.sin_port = htons(REMOTE_SERVER_PORT); //converte a porta 40001 do formato da sua máquina local para o formato da rede
@@ -62,6 +77,7 @@ int main(int argc, char *argv[]){
         printf("Digite a mensagem: ");
         scanf("%99[^\n]", msg); //lê tudo até encontrar \n, alterei para 99 para evitar buffer overflow
         rc = sendto(sd, msg, strlen(msg), 0, (struct sockaddr *)&remoteServAddr, sizeof(remoteServAddr)); //transmite os dados para o servidor e verifica se a operação foi bem-sucedida
+        //   rc = send(sd, msg, strlen(msg)+1, 0); (outra foram de enviar, caso o endereço do servidor seja passao la em cima)
         clear_stdin_buffer();
 
         if(rc<0){

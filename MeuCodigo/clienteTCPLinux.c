@@ -79,6 +79,11 @@ int main(int argc, char *argv[])
             close(sd);
             exit(1);
         }
+        // para receber mensagens de volta do servidor
+        char msgvolta[MAX_MSG];
+        memset(msgvolta, 0x0, MAX_MSG);
+        recv(sd, msgvolta, sizeof(msgvolta), 0);
+        printf("Servidor respondeu: %s\n", msgvolta);
     }
     close(sd);
     return 1;

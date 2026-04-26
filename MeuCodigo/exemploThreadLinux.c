@@ -56,6 +56,7 @@ int main()
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     double tempo_sem_thread = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    // 1e9 -> o tv_sec está em nanossegundos, então precisamos dividir por 1 bilhão para converter para segundos:
     printf("Sem thread: soma = %.2f, tempo = %f segundos\n", result_single, tempo_sem_thread);
 
     // ----------- COM THREAD -----------

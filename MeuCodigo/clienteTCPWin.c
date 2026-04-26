@@ -1,6 +1,6 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
-#endif
+#endif // se ainda não foi definido, define agora
 
 #include <windows.h>
 #include <winsock2.h>
@@ -9,8 +9,8 @@
 #include <stdio.h>
 
 #pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-#pragma comment(lib, "AdvApi32.lib")
+#pragma comment(lib, "Mswsock.lib")  // Extensões Microsoft do Winsock
+#pragma comment(lib, "AdvApi32.lib") // Funções avançadas do Windows
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "40002"
@@ -27,8 +27,7 @@ int __cdecl main(int argc, char **argv)
     WSADATA wsaData;
     SOCKET ConnectSocket = INVALID_SOCKET;
     struct addrinfo *result = NULL, *ptr = NULL, hints;
-    char sendbuf[255]; // = "this is a test";
-    char recvbuf[DEFAULT_BUFLEN];
+    char sendbuf[255];
     int iResult;
     int recvbuflen = DEFAULT_BUFLEN;
 
@@ -47,7 +46,7 @@ int __cdecl main(int argc, char **argv)
     }
 
     ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_UNSPEC; // aceito IPv4 ou IPv6
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
@@ -82,8 +81,8 @@ int __cdecl main(int argc, char **argv)
         {
             closesocket(ConnectSocket);
             ConnectSocket = INVALID_SOCKET;
+            break;
         }
-        break;
     }
 
     freeaddrinfo(result);
@@ -121,3 +120,35 @@ int __cdecl main(int argc, char **argv)
 
     return 0;
 }
+/*
+main(argc, argv)
+       |
+       ↓
+  argc != 2? ──── SIM ──→ Imprime uso e encerra
+       |
+      NÃO
+       ↓
+  WSAStartup()          ← Liga o Winsock
+       ↓
+  getaddrinfo(argv[1])  ← Resolve IP do servidor
+       ↓
+  for(ptr=result...)    ← Tenta cada endereço
+    socket()            ← Cria socket
+    connect()           ← Conecta ao servidor  ← (pode falhar e tentar próximo)
+    break
+       ↓
+  ConnectSocket         ← Conexão OK?
+  == INVALID? ──SIM──→ Erro e encerra
+       |
+      NÃO
+       ↓
+  while(1)              ← Loop de mensagens
+    scanf()             ← Lê do teclado
+    send()              ← Envia ao servidor
+    strlen==0? ─SIM──→ break
+    clear_stdin_buffer()
+       ↓
+  closesocket()
+  WSACleanup()
+  return 0
+*/
